@@ -32,7 +32,7 @@ class gen_labels(object):
         trace0 = go.Scatter(y=self.hist, name='Price')
         trace1 = go.Scatter(y=self.savgol, name='Label')
 
-        py.plot([trace0, trace1], filename="../output/label.html")
+        py.plot([trace0, trace1], filename="../docs/label.html")
 
 if __name__ == '__main__':
     labels = gen_labels(window=13, polyorder=3, graph=True)

@@ -10,6 +10,11 @@ The price of Bitcoin tends to be very volatile and sporadic making it difficult 
 * MACD histogram
 * Stochastic RSI
 * Volume
+* Interpolation of price
     
 ![alt text](docs/ta_analysis.PNG)   
-    
+
+An approximation of the next price is performed using ridge regression from Scikit-learn. Through polynomial interpolation, the price can be treated as a continuous function and the next value in a series can be approximated. 
+
+![alt text](docs/poly_interpolation.png)
+

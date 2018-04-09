@@ -59,4 +59,3 @@ class Macd(object):
 
         # return histogram
         return macd - self.signal_ema.prev_ema
-    

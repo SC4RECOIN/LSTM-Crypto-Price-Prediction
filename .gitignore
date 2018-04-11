@@ -1,2 +1,5 @@
 # this file contains the api key and secret for my account
 keys.txt
+
+# cache files
+*.pyc

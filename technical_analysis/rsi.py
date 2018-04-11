@@ -4,7 +4,7 @@ import plotly.graph_objs as go
 
 
 class Rsi(object):
-    def __init__(self, period=14, hist='../historical_data/hist_data.npy'):
+    def __init__(self, period=14, hist='historical_data/hist_data.npy'):
         self.period = period
         self.prev_losses = None
         self.prev_gains = None
@@ -76,7 +76,7 @@ class Rsi(object):
         return 100 - (100 / (1 + rs))
 
 class StochRsi(Rsi):
-    def __init__(self, period=14, graph=False):
+    def __init__(self, period=14):
         super(StochRsi, self).__init__(period=period)
 
         self.stoch_value = self.calc_stoch_rsi()

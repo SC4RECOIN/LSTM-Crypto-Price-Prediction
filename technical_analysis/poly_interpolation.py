@@ -5,20 +5,42 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def poly_inter(data, degree=4, plot=False):
-    # define x values for data points
-    X = np.linspace(0, data.shape[0] - 1, data.shape[0])[:, np.newaxis]
-    
-    # define pipeline
-    model = make_pipeline(PolynomialFeatures(degree), Ridge())
+class PolyInter(object):
+    def __init__(self, degree=4, pd=20, hist='historical_data/hist_data.npy', plot=False, progress_bar=False):
+        self.degree = degree
+        self.pd = pd
+        self.progress = progress_bar
+        
+        # required matplotlib
+        self.plot = plot
 
-    # fit model
-    model.fit(X, data)
+        self.values = self.calc_poly(np.load(hist))
 
-    if plot: plot_poly(X, model.predict(X), data)
-    
-    # predict next interpolated value
-    return model.predict(np.array([[data.shape[0]]]))
+    def calc_poly(self, data):
+        pred_inter = [0] * (self.pd - 1)
+
+        # iterate through prices to find interpolations
+        for i in range(self.pd, len(data) + 1):
+            pred_inter.append(self.poly_inter(data[i - self.pd:i]))
+            
+            # monitor progress
+            if self.progress: print('\rInterpolation progress: {0:.2f}%'.format(i / len(data) * 100), end='')
+            if i == len(data): print('')
+
+        return np.array(pred_inter)
+
+    def poly_inter(self, data):
+        # define x values for data points
+        X = np.linspace(0, data.shape[0] - 1, data.shape[0])[:, np.newaxis]
+        
+        # define pipeline and fit model
+        model = make_pipeline(PolynomialFeatures(self.degree), Ridge())
+        model.fit(X, data)
+
+        if self.plot: plot_poly(X, model.predict(X), data)
+        
+        # predict next interpolated value
+        return model.predict(np.array([[data.shape[0]]]))
 
 def plot_poly(X, y_plot, data):
     # plot interpolation
@@ -29,13 +51,3 @@ def plot_poly(X, y_plot, data):
     
     plt.legend(loc='lower left')
     plt.show()
-
-if __name__ == '__main__':
-    # load the last 10 data points from file
-    test_data = np.load('../historical_data/hist_data.npy')[-20:]
-
-    # perform polynomial iterpolation
-    pred = poly_inter(test_data[:-1], degree=5, plot=True)
-
-    # compare
-    print('Predicted: {0} | Actual: {1} | Degree: {2}'.format(pred, test_data[-1], 5))

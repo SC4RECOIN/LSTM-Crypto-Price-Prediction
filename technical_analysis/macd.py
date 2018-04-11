@@ -28,7 +28,7 @@ class Ema(object):
         return self.prev_ema
 
 class Macd(object):
-    def __init__(self, short_pd=12, long_pd=26, sig_pd=9, hist='../historical_data/hist_data.npy'):
+    def __init__(self, short_pd=12, long_pd=26, sig_pd=9, hist='historical_data/hist_data.npy'):
         self.long_ema = Ema(long_pd)
         self.short_ema = Ema(short_pd)
         self.signal_ema = Ema(sig_pd)

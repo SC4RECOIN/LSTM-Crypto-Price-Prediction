@@ -6,7 +6,7 @@ import sys
 
 
 class Genlabels(object):
-    def __init__(self, window, polyorder=3, hist='../historical_data/hist_data.npy', graph=False):
+    def __init__(self, window, polyorder=3, hist='historical_data/hist_data.npy', graph=False):
         # check for valid parameters
         try:
             if window%2 == 0: raise ValueError('Window length must be an odd positive value')
@@ -51,4 +51,4 @@ class Genlabels(object):
         py.plot(fig, filename='../docs/label.html')
 
 if __name__ == '__main__':
-    labels = Genlabels(window=25, polyorder=3, graph=True)
+    labels = Genlabels(window=25, polyorder=3, hist='../historical_data/hist_data.npy', graph=True)

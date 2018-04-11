@@ -23,7 +23,7 @@ An approximation of the next price is performed using ridge regression from Scik
 The interpolation function fits the data and returns the next point on the polynomial function. This approximated value will be fed into the network along with the other features to predict the output label.
 
 ## Results
-The results so far are not very promising. The accuracy of the network is slightly above 60% which makes is marginally better than guessing. Adding features and have better training data should improve the model. Future iterations of the project will include more robust technical analysis
+The results so far are somewhat promising. The accuracy of the network is just above 70% which can be helpful in market analysis but cannot be used for automated trading. Adding features and have better training data should improve the model. Future iterations of the project will include more robust technical analysis
     
       
 

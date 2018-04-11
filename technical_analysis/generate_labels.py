@@ -23,11 +23,22 @@ class Genlabels(object):
         self.savgol = self.apply_filter(deriv=0)
         self.savgol_deriv = self.apply_filter(deriv=1)
 
+        self.labels = self.cont_to_disc()
+
         if graph: self.graph()
 
     def apply_filter(self, deriv):
         # apply a Savitzky-Golay filter to historical prices
-        return savgol_filter(self.hist, self.window, self.polyorder, deriv=deriv)          
+        return savgol_filter(self.hist, self.window, self.polyorder, deriv=deriv) 
+
+    def cont_to_disc(self):
+        # encode label as binary (up/down)
+        label = []
+        for value in self.savgol_deriv:
+            if value >= 0: label.append(1)
+            else: label.append(0)
+        
+        return np.array(label)
 
     def graph(self):
         # graph the labels

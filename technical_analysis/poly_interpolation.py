@@ -40,7 +40,11 @@ class PolyInter(object):
         if self.plot: plot_poly(X, model.predict(X), data)
         
         # predict next interpolated value
-        return model.predict(np.array([[data.shape[0]]]))
+        last = model.predict(np.array([[data.shape[0] - 1]]))
+        pred = model.predict(np.array([[data.shape[0]]]))
+
+        # return % change
+        return pred[0]/last[0]
 
 def plot_poly(X, y_plot, data):
     # plot interpolation

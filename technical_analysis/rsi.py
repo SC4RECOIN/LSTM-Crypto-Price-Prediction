@@ -80,7 +80,7 @@ class StochRsi(Rsi):
         super(StochRsi, self).__init__(period=period)
 
         self.stoch_value = self.calc_stoch_rsi()
-        self.stoch_cross = self.calc_histo()
+        self.values = self.calc_histo()
     
     def calc_stoch_rsi(self):
         stoch_rsi = [0] *  (self.period*2 - 2)

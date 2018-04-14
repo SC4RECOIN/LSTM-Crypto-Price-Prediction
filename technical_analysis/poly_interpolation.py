@@ -43,7 +43,7 @@ class PolyInter(object):
         last = model.predict(np.array([[data.shape[0] - 1]]))
         pred = model.predict(np.array([[data.shape[0]]]))
 
-        # return % change
+        # return slope of last point
         return pred[0]/last[0]
 
 def plot_poly(X, y_plot, data):

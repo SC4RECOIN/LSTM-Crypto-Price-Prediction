@@ -34,7 +34,7 @@ class Macd(object):
         self.signal_ema = Ema(sig_pd)
 
         # find macd histogram
-        self.histo = self.calc_macd(np.load(hist))
+        self.values = self.calc_macd(np.load(hist))
 
     def calc_macd(self, data):
         # calculate short and long ema

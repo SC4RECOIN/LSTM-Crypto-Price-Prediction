@@ -11,6 +11,8 @@ from technical_analysis.generate_labels import Genlabels
 from technical_analysis.macd import Macd
 from technical_analysis.rsi import StochRsi
 from technical_analysis.poly_interpolation import PolyInter
+from technical_analysis.dpo import Dpo
+from technical_analysis.coppock import Coppock
 
 
 def extract_data():
@@ -18,25 +20,33 @@ def extract_data():
     labels = Genlabels(window=25, polyorder=3).labels
 
     # obtain features
-    macd = Macd(6, 12, 3).histo
-    stoch_rsi = StochRsi().stoch_cross
-    volume = np.load('historical_data/hist_volume.npy')
-    interpolation = PolyInter(progress_bar=True).values
+    macd = Macd(6, 12, 3).values
+    stoch_rsi = StochRsi(period=14).values
+    dpo = Dpo(period=4).values
+    cop = Coppock(wma_pd=10, roc_long=6, roc_short=3).values
+    inter_slope = PolyInter(progress_bar=True).values
 
     # truncate bad values and shift label
-    X = np.array([macd[30:-1], stoch_rsi[30:-1], volume[30:-1], interpolation[30:-1]])
+    X = np.array([macd[30:-1], 
+                stoch_rsi[30:-1], 
+                inter_slope[30:-1],
+                dpo[30:-1], 
+                cop[30:-1]])
+
+    X = np.transpose(X)
     labels = labels[31:]
+
+    print(X.shape)
+    print(labels.shape)
 
     try:
         # make sure data is the same length
-        if macd.shape[0] != stoch_rsi.shape[0] \
-        or macd.shape[0] != interpolation.shape[0] \
-        or macd.shape[0] != volume.shape[0]: 
+        if X.shape[0] != labels.shape[0]:
             raise Exception('Data is not the same length')
     except Exception as error:
             sys.exit('Error: {0}'.format(error))
 
-    return np.transpose(X), labels
+    return X, labels
 
 def split(X, y, split=0.8):
     # split data
@@ -46,7 +56,7 @@ def split(X, y, split=0.8):
 
     return X_train, X_test, y_train, y_test
 
-def shape_data(X, y, timesteps=20, split=0.8):
+def shape_data(X, y, timesteps=10, split=0.8):
     # scale data without looking into test data
     to_fit_idx = int(X.shape[0] * split) 
     scaler = StandardScaler().fit(X[:to_fit_idx])
@@ -62,6 +72,7 @@ def shape_data(X, y, timesteps=20, split=0.8):
     y = y[timesteps - 1:]
 
     # shuffle data
+    np.random.seed(42)
     shuffle_index = np.random.permutation(X.shape[0])
     X, y = X[shuffle_index], y[shuffle_index]
 
@@ -86,7 +97,7 @@ def build_model(X, y, val_x, val_y):
                   optimizer='adam',
                   metrics=['accuracy'])
 
-    model.fit(X, y, epochs=30, batch_size=8, shuffle=True, validation_data=(val_x, val_y))
+    model.fit(X, y, epochs=40, batch_size=8, shuffle=True, validation_data=(val_x, val_y))
 
     return model
 

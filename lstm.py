@@ -4,6 +4,7 @@ import plotly.graph_objs as go
 from keras.layers import LSTM, Dense, Dropout, TimeDistributed
 from keras.models import Sequential
 from sklearn.preprocessing import StandardScaler
+from sklearn.externals import joblib
 from keras.utils import to_categorical
 import sys
 
@@ -36,9 +37,6 @@ def extract_data():
     X = np.transpose(X)
     labels = labels[31:]
 
-    print(X.shape)
-    print(labels.shape)
-
     try:
         # make sure data is the same length
         if X.shape[0] != labels.shape[0]:
@@ -48,19 +46,45 @@ def extract_data():
 
     return X, labels
 
-def split(X, y, split=0.8):
-    # split data
-    idx = int(X.shape[0] * split)
-    X_train, X_test = X[:idx], X[idx:] 
-    y_train, y_test = y[:idx], y[idx:]
+def adjust_data(X, y, split=0.8):
+    # count the number of each label
+    count_1 = np.count_nonzero(y)
+    count_0 = y.shape[0] - count_1
+    cut = min(count_0, count_1)
+
+    # save some data for testing
+    train_idx = int(cut * split)
+    
+    # shuffle data
+    np.random.seed(42)
+    shuffle_index = np.random.permutation(X.shape[0])
+    X, y = X[shuffle_index], y[shuffle_index]
+
+    # find indexes of each label
+    idx_1 = np.argwhere(y == 1).flatten()
+    idx_0 = np.argwhere(y == 0).flatten()
+
+    # grab specified cut of each label put them together 
+    X_train = np.concatenate((X[idx_1[:train_idx]], X[idx_0[:train_idx]]), axis=0)
+    X_test = np.concatenate((X[idx_1[train_idx:cut]], X[idx_0[train_idx:cut]]), axis=0)
+    y_train = np.concatenate((y[idx_1[:train_idx]], y[idx_0[:train_idx]]), axis=0)
+    y_test = np.concatenate((y[idx_1[train_idx:cut]], y[idx_0[train_idx:cut]]), axis=0)
+
+    # shuffle again to mix labels
+    np.random.seed(7)
+    shuffle_train = np.random.permutation(X_train.shape[0])
+    shuffle_test = np.random.permutation(X_test.shape[0])
+
+    X_train, y_train = X_train[shuffle_train], y_train[shuffle_train]
+    X_test, y_test = X_test[shuffle_test], y_test[shuffle_test]
 
     return X_train, X_test, y_train, y_test
 
-def shape_data(X, y, timesteps=10, split=0.8):
-    # scale data without looking into test data
-    to_fit_idx = int(X.shape[0] * split) 
-    scaler = StandardScaler().fit(X[:to_fit_idx])
-    X = scaler.transform(X)
+def shape_data(X, y, timesteps=10):
+    # scale data
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
+    joblib.dump(scaler, 'models/scaler.dump')
 
     # reshape data with timesteps
     reshaped = []
@@ -71,12 +95,7 @@ def shape_data(X, y, timesteps=10, split=0.8):
     X = np.array(reshaped)
     y = y[timesteps - 1:]
 
-    # shuffle data
-    np.random.seed(42)
-    shuffle_index = np.random.permutation(X.shape[0])
-    X, y = X[shuffle_index], y[shuffle_index]
-
-    return X, to_categorical(y, 2)
+    return X, y
 
 def build_model(X, y, val_x, val_y):
     # first layer
@@ -97,14 +116,21 @@ def build_model(X, y, val_x, val_y):
                   optimizer='adam',
                   metrics=['accuracy'])
 
-    model.fit(X, y, epochs=40, batch_size=8, shuffle=True, validation_data=(val_x, val_y))
+    model.fit(X, y, epochs=60, batch_size=8, shuffle=True, validation_data=(val_x, val_y))
 
     return model
 
 if __name__ == '__main__':
-    # load data and shape it
+    # load and reshape data
     X, y = extract_data()
-    X, y = shape_data(X, y)
-    X_train, X_test, y_train, y_test = split(X, y)
+    X, y = shape_data(X, y, timesteps=10)
 
+    # ensure equal number of labels, shuffle, and split
+    X_train, X_test, y_train, y_test = adjust_data(X, y)
+    
+    # binary encode for softmax function
+    y_train, y_test = to_categorical(y_train, 2), to_categorical(y_test, 2)
+
+    # build and train model
     model = build_model(X_train, y_train, X_test, y_test)
+    model.save('models/lstm_model.h5')

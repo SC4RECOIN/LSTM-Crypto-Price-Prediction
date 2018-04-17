@@ -31,7 +31,7 @@ An approximation of the next price is performed using ridge regression from Scik
 
 
 ## Results
-The results so far are somewhat promising. The validation accuracy of the network is ~~just above 70%~~ around 77% after adding a couple more indicators. This can be helpful in market analysis but cannot be used for automated trading due to false positives and network error. Adding features and have better training data should improve the model.
+The results so far are somewhat promising. The validation accuracy of the network is ~~just above 70%~~ almost 80% after adding a couple more indicators and ensuring an equal amount of training labels. This can be helpful in market analysis but cannot be used for automated trading due to false positives and network error. Adding features and have better training data should improve the model.
 
 
 *All code developed by Kurtis Streutker*

@@ -3,3 +3,7 @@ keys.txt
 
 # cache files
 *.pyc
+
+# do not upload models
+*.dump
+*.h5

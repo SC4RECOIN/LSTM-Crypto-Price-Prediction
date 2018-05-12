@@ -33,6 +33,36 @@ An approximation of the next price is performed using ridge regression from Scik
 ## Results
 The results so far are somewhat promising. The validation accuracy of the network is ~~just above 70%~~ almost 80% after adding a couple more indicators and ensuring an equal amount of training labels. This can be helpful in market analysis but cannot be used for automated trading due to false positives and network error. Adding features and have better training data should improve the model.
 
+## Update: trading test
+Data from the Binance exchange was pulled from April 17 - May 12 as the model was trained prior to this and has not seen this data. The data within this period has a good balance of price action and should be a good simulation for the trading bot. This was done by applying the saved model to the data and tracking fake trades in a wallet. 
+
+```python
+fee = 0.001  # Binance trading fee
+for idx, buy in enumerate(action):
+
+    if holding:
+        if not buy:
+            holding = False
+            wallet = btc * prices[idx] * (1 - fee)
+            print('$ {0:.2f}'.format(wallet))
+    
+    else:
+        if buy:
+            holding = True
+            btc = wallet / prices[idx] * (1 - fee)
+
+print('\nWallet: {0:.2f}%'.format((wallet/100-1)*100))
+print('Holding: {0:.2f}%'.format((prices[-1]/prices[0]-1)*100))
+```
+The results are as expected. The model makes good predictions for the most part but is a bit too laggard in trading decisions. This leads to late trades which can be very costly in crypto markets as the price can swing so quickly. The bot does makes a little money initially but slowly loses it through late trades. When the trading fee is introduced the bot performs very poorly.
+
+The final results of the test period are as follows (with trading fee):
+```
+Wallet: -11.26%
+Holding: 6.51%
+```
+
+New iterations of the model should include better output as limiting the model to buy and sell predictions does not make for a very dynamic model. Also, creating a more dynamic loss function could improve the model as it should not get penalized for missing a buy signal just before the price is about to reverse as much as missing a buy signal at the bottom of a dip. Reinforcement learning should also be explored.
 
 *All code developed by Kurtis Streutker*
    

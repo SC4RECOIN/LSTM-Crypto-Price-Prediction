@@ -33,7 +33,7 @@ An approximation of the next price is performed using ridge regression from Scik
 ## Results
 The results so far are somewhat promising. The validation accuracy of the network is ~~just above 70%~~ almost 80% after adding a couple more indicators and ensuring an equal amount of training labels. This can be helpful in market analysis but cannot be used for automated trading due to false positives and network error. Adding features and have better training data should improve the model.
 
-## Update: trading test
+### Update: trading test
 Data from the Binance exchange was pulled from April 17 - May 12 as the model was trained prior to this and has not seen this data. The data within this period has a good balance of price action and should be a good simulation for the trading bot. This was done by applying the saved model to the data and tracking fake trades in a wallet. 
 
 ```python

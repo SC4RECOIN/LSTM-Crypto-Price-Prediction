@@ -67,7 +67,6 @@ Retraining the network and testing it on new data shows more promise
 Wallet: -7.45%
 Holding: -22.15%
 ```
-The bot has promising potential
 
 New iterations of the model should include better output as limiting the model to buy and sell predictions does not make for a very dynamic model. Also, creating a more dynamic loss function could improve the model as it should not get penalized for missing a buy signal just before the price is about to reverse as much as missing a buy signal at the bottom of a dip. Reinforcement learning should also be explored.
 

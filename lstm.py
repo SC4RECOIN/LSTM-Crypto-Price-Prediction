@@ -37,13 +37,6 @@ def extract_data():
     X = np.transpose(X)
     labels = labels[31:]
 
-    try:
-        # make sure data is the same length
-        if X.shape[0] != labels.shape[0]:
-            raise Exception('Data is not the same length')
-    except Exception as error:
-            sys.exit('Error: {0}'.format(error))
-
     return X, labels
 
 def adjust_data(X, y, split=0.8):

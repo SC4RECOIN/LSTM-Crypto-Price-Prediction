@@ -1,16 +1,17 @@
 import numpy as np
 import plotly.offline as py
 import plotly.graph_objs as go
+import copy
 
 
 class Rsi(object):
-    def __init__(self, period=14, hist='historical_data/hist_data.npy'):
+    def __init__(self, data, period=14):
         self.period = period
         self.prev_losses = None
         self.prev_gains = None
         self.last_price = None
 
-        self.value = self.calc_rsi(np.load(hist))
+        self.value = self.calc_rsi(data)
 
     def get_rs(self, data):
         # find the gain and loss on each point
@@ -54,11 +55,11 @@ class Rsi(object):
             rs = self.calc_rs()
             rsi.append(100 - (100 / (1 + rs)))
 
-        return np.array(rsi)
+        return rsi
 
-    def update_rsi(self, value):
-        change = value - self.last_price
-        self.last_price = value
+    def update_rsi(self, price):
+        change = price - self.last_price
+        self.last_price = price
 
         if change >= 0:
             self.prev_losses.append(0)
@@ -72,16 +73,24 @@ class Rsi(object):
         self.prev_losses.pop(0)
 
         rs = self.calc_rs()
+        self.value.append(100 - (100 / (1 + rs)))
+        self.value.pop(0)
 
-        return 100 - (100 / (1 + rs))
+        return self.value[-1]
 
 class StochRsi(Rsi):
-    def __init__(self, period=14):
-        super(StochRsi, self).__init__(period=period)
+    def __init__(self, data, period=14):
+        super(StochRsi, self).__init__(data, period=period)
+
+        self.ma_k = None
+        self.ma_d = None
+
+        self.smooth_k = 3
+        self.smooth_d = 3
 
         self.stoch_value = self.calc_stoch_rsi()
-        self.values = self.calc_histo()
-    
+        self.hist_values = self.calc_histo()
+
     def calc_stoch_rsi(self):
         stoch_rsi = [0] *  (self.period*2 - 2)
 
@@ -91,17 +100,38 @@ class StochRsi(Rsi):
             high = np.amax(window); low = np.amin(window)
             stoch_rsi.append((self.value[idx-1] - low)/ (high - low))
 
-        return np.array(stoch_rsi)
-    
-    def calc_histo(self, pd=3):
-        # find %K
-        ma_k = np.copy(self.stoch_value)
-        for idx in range(3,len(ma_k) + 1):
-            ma_k[idx-1] = np.average(ma_k[idx - 3:idx])
-        
-        # find %D
-        ma_d = np.copy(ma_k)
-        for idx in range(3,len(ma_d) + 1):
-            ma_d[idx-1] = np.average(ma_d[idx - 3:idx])
-        
-        return ma_k - ma_d
+        return stoch_rsi
+
+    def calc_histo(self):
+        # find K%
+        self.ma_k = [0] * (self.smooth_k - 1)
+        for idx in range(self.smooth_k, len(self.stoch_value) + 1):
+            self.ma_k.append(np.average(self.stoch_value[idx - self.smooth_k:idx]))
+
+        # find D%
+        self.ma_d = [0] * (self.smooth_d - 1)
+        for idx in range(self.smooth_d, len(self.ma_k) + 1):
+            self.ma_d.append(np.average(self.ma_k[idx - self.smooth_d:idx]))
+
+        # subtract two arrays
+        return [x1 - x2 for (x1, x2) in zip(self.ma_k, self.ma_d)]
+
+    def update_stoch_rsi(self, price):
+        _ = super(StochRsi, self).update_rsi(price)
+
+        window = self.value[-self.period:]
+        high = np.amax(window); low = np.amin(window)
+
+        self.stoch_value.append((self.value[-1] - low) / (high - low))
+        self.stoch_value.pop(0)
+
+    def update_stoch_hist(self, price):
+        self.update_stoch_rsi(price)
+
+        self.ma_k.append(np.average(self.stoch_value[-self.smooth_k:]))
+        self.ma_d.append(np.average(self.ma_k[-self.smooth_d:]))
+
+        self.ma_k.pop(0)
+        self.ma_d.pop(0)
+
+        return self.ma_k[-1] - self.ma_d[-1]

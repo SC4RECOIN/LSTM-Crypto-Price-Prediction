@@ -2,13 +2,13 @@ import numpy as np
 
 
 class Coppock(object):
-    def __init__(self, wma_pd=10, roc_long=14, roc_short=11, hist='historical_data/hist_data.npy'):
+    def __init__(self, data, wma_pd=10, roc_long=14, roc_short=11):
         self.wma_pd = wma_pd
         self.long_pd = roc_long
         self.short_pd = roc_short
         self.past_data = None
 
-        self.values = self.calc_copp(np.load(hist))
+        self.values = self.calc_copp(data)
 
     def calc_copp(self, data):
         short_roc = [0] * (self.short_pd - 1)
@@ -38,9 +38,9 @@ class Coppock(object):
             copp.append(temp_wma / weight_sum)
 
         # save data for update calculation
-        self.past_data = data[-(self.long_pd + self.wma_pd):]
+        self.past_data = data[-(self.long_pd + self.wma_pd):].tolist()
 
-        return np.array(copp)
+        return copp
 
     def update_copp(self, value):
         # update data for calculations
@@ -69,3 +69,21 @@ class Coppock(object):
             weight_sum += i + 1
 
         return temp_wma / weight_sum
+
+if __name__ == "__main__":
+    data = np.load('data/hist_data.npy')[:, 4]
+    test1 = Coppock(data, wma_pd=10, roc_long=6, roc_short=3).values
+
+    update_data = data[-20:]
+    test2 = Coppock(data[:-20], wma_pd=10, roc_long=6, roc_short=3)
+    test2_values = test2.values
+
+    updated = [x for x in test2_values]
+
+    for value in update_data:
+        updated.append(test2.update_copp(value))
+
+    import matplotlib.pyplot as plt
+    plt.plot(test1[-100:])
+    plt.plot(updated[-100:])
+    plt.show()

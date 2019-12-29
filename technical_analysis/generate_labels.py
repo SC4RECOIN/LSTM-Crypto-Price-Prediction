@@ -6,7 +6,7 @@ import sys
 
 
 class Genlabels(object):
-    def __init__(self, window, polyorder=3, hist='historical_data/hist_data.npy', graph=False):
+    def __init__(self, data, window, polyorder=3, graph=False):
         # check for valid parameters
         try:
             if window%2 == 0: raise ValueError('Window length must be an odd positive value')
@@ -15,7 +15,7 @@ class Genlabels(object):
             sys.exit('Error: {0}'.format(error))   
 
         # load historic data from file
-        self.hist = np.load(hist)
+        self.hist = data
         self.window = window
         self.polyorder = polyorder
 

@@ -6,7 +6,8 @@ from keras.models import Sequential
 from sklearn.preprocessing import StandardScaler
 from sklearn.externals import joblib
 from keras.utils import to_categorical
-import sys
+import json
+import os
 
 from technical_analysis.generate_labels import Genlabels
 from technical_analysis.macd import Macd
@@ -16,23 +17,23 @@ from technical_analysis.dpo import Dpo
 from technical_analysis.coppock import Coppock
 
 
-def extract_data():
+def extract_data(data):
     # obtain labels
-    labels = Genlabels(window=25, polyorder=3).labels
+    labels = Genlabels(data, window=25, polyorder=3).labels
 
     # obtain features
-    macd = Macd(6, 12, 3).values
-    stoch_rsi = StochRsi(period=14).values
-    dpo = Dpo(period=4).values
-    cop = Coppock(wma_pd=10, roc_long=6, roc_short=3).values
-    inter_slope = PolyInter(progress_bar=True).values
+    macd = Macd(data, 6, 12, 3).values
+    stoch_rsi = StochRsi(data, period=14).hist_values
+    dpo = Dpo(data, period=4).values
+    cop = Coppock(data, wma_pd=10, roc_long=6, roc_short=3).values
+    inter_slope = PolyInter(data, progress_bar=True).values
 
     # truncate bad values and shift label
     X = np.array([macd[30:-1], 
-                stoch_rsi[30:-1], 
-                inter_slope[30:-1],
-                dpo[30:-1], 
-                cop[30:-1]])
+                  stoch_rsi[30:-1], 
+                  inter_slope[30:-1],
+                  dpo[30:-1], 
+                  cop[30:-1]])
 
     X = np.transpose(X)
     labels = labels[31:]
@@ -77,6 +78,10 @@ def shape_data(X, y, timesteps=10):
     # scale data
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
+
+    if not os.path.exists('models'):
+        os.mkdir('models')
+
     joblib.dump(scaler, 'models/scaler.dump')
 
     # reshape data with timesteps
@@ -90,7 +95,7 @@ def shape_data(X, y, timesteps=10):
 
     return X, y
 
-def build_model(X, y, val_x, val_y):
+def build_model():
     # first layer
     model = Sequential()
     model.add(LSTM(32, input_shape=(X.shape[1], X.shape[2]), return_sequences=True))
@@ -109,13 +114,14 @@ def build_model(X, y, val_x, val_y):
                   optimizer='adam',
                   metrics=['accuracy'])
 
-    model.fit(X, y, epochs=60, batch_size=8, shuffle=True, validation_data=(val_x, val_y))
-
     return model
 
 if __name__ == '__main__':
+    with open('historical_data/hist_data.json') as f:
+        data = json.load(f)
+
     # load and reshape data
-    X, y = extract_data()
+    X, y = extract_data(np.array(data['close']))
     X, y = shape_data(X, y, timesteps=10)
 
     # ensure equal number of labels, shuffle, and split
@@ -125,5 +131,6 @@ if __name__ == '__main__':
     y_train, y_test = to_categorical(y_train, 2), to_categorical(y_test, 2)
 
     # build and train model
-    model = build_model(X_train, y_train, X_test, y_test)
+    model = build_model()
+    model.fit(X_train, y_train, epochs=10, batch_size=8, shuffle=True, validation_data=(X_test, y_test))
     model.save('models/lstm_model.h5')

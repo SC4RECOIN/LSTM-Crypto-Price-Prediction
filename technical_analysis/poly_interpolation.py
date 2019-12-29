@@ -6,7 +6,7 @@ import numpy as np
 
 
 class PolyInter(object):
-    def __init__(self, degree=4, pd=20, hist='historical_data/hist_data.npy', plot=False, progress_bar=False):
+    def __init__(self, data, degree=4, pd=20, plot=False, progress_bar=False):
         self.degree = degree
         self.pd = pd
         self.progress = progress_bar
@@ -14,7 +14,7 @@ class PolyInter(object):
         # required matplotlib
         self.plot = plot
 
-        self.values = self.calc_poly(np.load(hist))
+        self.values = self.calc_poly(data)
 
     def calc_poly(self, data):
         pred_inter = [0] * (self.pd - 1)

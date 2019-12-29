@@ -2,11 +2,11 @@ import numpy as np
 
 
 class Dpo(object):
-    def __init__(self, period=10, hist='historical_data/hist_data.npy'):
+    def __init__(self, data, period=10):
         self.period = period
         self.data = None
 
-        self.values = self.calc_dpo(np.load(hist))
+        self.values = self.calc_dpo(data)
 
     def calc_dpo(self, data):
         dpo = [0] * (self.period - 1)

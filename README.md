@@ -1,4 +1,4 @@
-# LSTM-Cryptonalysis
+# LSTM Crypto Price Prediction 🎯
 The goal of this project is predicting the price trend of Bitcoin using an lstm-RNN. Technical analysis is applied to historical BTC data in attempt to extract price action for automated trading. The output of the network will indicate and upward or downward trend regarding the next period and will be used to trade Bitcoin throught the Binance API.
 
 ### requirements

@@ -1,20 +1,19 @@
-import numpy as np
-import plotly.offline as py
-import plotly.graph_objs as go
-from keras.layers import LSTM, Dense, Dropout, TimeDistributed
-from keras.models import Sequential
-from sklearn.preprocessing import StandardScaler
-from sklearn.externals import joblib
-from keras.utils import to_categorical
 import json
 import os
 
+import joblib as joblib
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.utils import to_categorical
+
+from technical_analysis.coppock import Coppock
+from technical_analysis.dpo import Dpo
 from technical_analysis.generate_labels import Genlabels
 from technical_analysis.macd import Macd
-from technical_analysis.rsi import StochRsi
 from technical_analysis.poly_interpolation import PolyInter
-from technical_analysis.dpo import Dpo
-from technical_analysis.coppock import Coppock
+from technical_analysis.rsi import StochRsi
 
 
 def extract_data(data):
@@ -29,16 +28,17 @@ def extract_data(data):
     inter_slope = PolyInter(data, progress_bar=True).values
 
     # truncate bad values and shift label
-    X = np.array([macd[30:-1], 
-                  stoch_rsi[30:-1], 
+    X = np.array([macd[30:-1],
+                  stoch_rsi[30:-1],
                   inter_slope[30:-1],
-                  dpo[30:-1], 
+                  dpo[30:-1],
                   cop[30:-1]])
 
     X = np.transpose(X)
     labels = labels[31:]
 
     return X, labels
+
 
 def adjust_data(X, y, split=0.8):
     # count the number of each label
@@ -48,7 +48,7 @@ def adjust_data(X, y, split=0.8):
 
     # save some data for testing
     train_idx = int(cut * split)
-    
+
     # shuffle data
     np.random.seed(42)
     shuffle_index = np.random.permutation(X.shape[0])
@@ -58,7 +58,7 @@ def adjust_data(X, y, split=0.8):
     idx_1 = np.argwhere(y == 1).flatten()
     idx_0 = np.argwhere(y == 0).flatten()
 
-    # grab specified cut of each label put them together 
+    # grab specified cut of each label put them together
     X_train = np.concatenate((X[idx_1[:train_idx]], X[idx_0[:train_idx]]), axis=0)
     X_test = np.concatenate((X[idx_1[train_idx:cut]], X[idx_0[train_idx:cut]]), axis=0)
     y_train = np.concatenate((y[idx_1[:train_idx]], y[idx_0[:train_idx]]), axis=0)
@@ -74,6 +74,7 @@ def adjust_data(X, y, split=0.8):
 
     return X_train, X_test, y_train, y_test
 
+
 def shape_data(X, y, timesteps=10):
     # scale data
     scaler = StandardScaler()
@@ -88,12 +89,13 @@ def shape_data(X, y, timesteps=10):
     reshaped = []
     for i in range(timesteps, X.shape[0] + 1):
         reshaped.append(X[i - timesteps:i])
-    
+
     # account for data lost in reshaping
     X = np.array(reshaped)
     y = y[timesteps - 1:]
 
     return X, y
+
 
 def build_model():
     # first layer
@@ -116,6 +118,7 @@ def build_model():
 
     return model
 
+
 if __name__ == '__main__':
     with open('historical_data/hist_data.json') as f:
         data = json.load(f)
@@ -126,7 +129,7 @@ if __name__ == '__main__':
 
     # ensure equal number of labels, shuffle, and split
     X_train, X_test, y_train, y_test = adjust_data(X, y)
-    
+
     # binary encode for softmax function
     y_train, y_test = to_categorical(y_train, 2), to_categorical(y_test, 2)
 

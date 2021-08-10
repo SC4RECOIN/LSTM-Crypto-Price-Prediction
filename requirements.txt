@@ -1,0 +1,9 @@
+joblib==1.0.1
+plotly==5.1.0
+matplotlib==3.4.2
+scipy==1.7.1
+python_binance==1.0.12
+tensorflow==2.5.0
+numpy==1.19.5
+python-binance==1.0.12
+scikit_learn==0.24.2

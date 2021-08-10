@@ -1,14 +1,14 @@
-from binance.client import Client
 import numpy as np
+from binance.client import Client
 
-intervals = {240:'4h', 60:'1h', 15:'15m', 5:'5m'}
+intervals = {240: '4h', 60: '1h', 15: '15m', 5: '5m'}
 start = '17 Aug, 2017'
 trading_pair = 'BTCUSDT'
 
 # load key and secret and connect to API
-keys = open('../keys.txt').readline()
+# keys = open('../keys.txt').readline()
 print('Connecting to Client...')
-api = Client(keys[0], keys[1])
+api = Client(None, None)
 
 # fetch desired candles of all data
 print('Fetching data (may take multiple API requests)')

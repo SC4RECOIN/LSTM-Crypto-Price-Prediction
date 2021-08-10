@@ -71,7 +71,7 @@ class Coppock(object):
         return temp_wma / weight_sum
 
 if __name__ == "__main__":
-    data = np.load('data/hist_data.npy')[:, 4]
+    data = np.load('../historical_data/hist_data.npy')
     test1 = Coppock(data, wma_pd=10, roc_long=6, roc_short=3).values
 
     update_data = data[-20:]

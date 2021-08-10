@@ -94,7 +94,7 @@ class PPO(object):
 
 
 if __name__ == "__main__":
-    data = np.load('data/hist_data.npy')[:, 4]
+    data = np.load('../historical_data/hist_data.npy')
     test1 = PPO(data, 6, 12, 3).values
 
     update_data = data[-20:]

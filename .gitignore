@@ -7,3 +7,5 @@ keys.txt
 # do not upload models
 *.dump
 *.h5
+
+.idea
